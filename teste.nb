@@ -1,2 +1,4 @@
 Este comando lista os ficheiros:
-$ ls 
+$ ls -lah
+Este mostra os processos:
+$ ps 

@@ -2,6 +2,9 @@
 #include <stdlib.h>
 #include <string.h>
 #include <unistd.h> /* chamadas ao sistema: defs e decls essenciais */
+#include <fcntl.h>
+#include <sys/stat.h>
+#include <sys/types.h>
 /* 
 Lê ficheiro .nb (formato ficticio);  sempre que encontra um $, tem de executar o comando 
 que se encontra a seguir e imprimir o output do programa da seguinte forma:
@@ -20,9 +23,16 @@ int main(int argc, char const *argv[]){
     FILE* file = fopen("teste.nb", "r");
     int i,x;
     char * linha;
+    char* c = NULL; 
     while(1){ 
-			fgets(temp,100,file); //fgets já coloca o \0 no fim da string
-			/// STRTOK
+			c = fgets(temp,100,file); //fgets já coloca o \0 no fim da string
+			if (c == NULL)
+            {
+                // Alterar o ficheiro 
+
+                exit(0);
+            }
+            /// STRTOK
 			temp[strlen(temp)-1] = '\0';
             linha = strdup(temp); // guardar linha para imprimir mais tarde 
 			char *s = strdup(" "); // separator
@@ -49,17 +59,20 @@ int main(int argc, char const *argv[]){
                     //Corre o programa "executa" para correr o programa em causa
                     x = fork();
                     if(x == 0){
-                        free(str[0]); // libertar mem. do $ 
-                        str[0] = strdup("executa.out");  // colocar o nome do programa executavel
+                        printf("%s\n",linha);
+                        printf(">>>\n");
+                        str[0] = strdup("executa");  // colocar o nome do programa executavel
                         execv(str[0],&(str[0]));
                         printf("Não devia imprimir isto\n");
                         exit(-1); //Exec correu mal
                     }else{
                         int status;
                         wait(0);
-                        //WEXITSTATUS(status);
-                        //printf("Esperei pelo meu filho! status = %d\n",status);
-                        exit(0);
+                        printf("<<<\n");
+                        // CONTROLO DE ERROS
+                        WEXITSTATUS(status);
+                        printf("Esperei pelo meu filho! status = %d\n",status);
+                        //exit(0);
                     }
                 }
 				

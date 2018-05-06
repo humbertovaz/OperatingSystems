@@ -5,7 +5,7 @@
 
 // teste para ver se faco commit
 int main(int argc, char *argv[]){
-    printf("%d\n",argc);
+    printf("%d #debug\n",argc);
     if (argc <= 1){
         perror("Erro no nr de argumentos inseridos\n");
         exit(-1);
@@ -20,6 +20,7 @@ int main(int argc, char *argv[]){
     }
     wait(&x);
     WEXITSTATUS(x);
+    exit(x);
     //printf("O meu filho morreu com %d\n",x);
     return 0;
 }
