@@ -19,6 +19,7 @@ int main(int argc, char *argv[]){
     }
     wait(&x);
     WEXITSTATUS(x);
+    exit(x);
     //printf("O meu filho morreu com %d\n",x);
     return 0;
 }
