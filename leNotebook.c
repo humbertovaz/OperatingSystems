@@ -49,8 +49,8 @@ int main(int argc, char const *argv[]){
                     //Corre o programa "executa" para correr o programa em causa
                     x = fork();
                     if(x == 0){
-                        free(str[0]); // libertar mem. do $ 
-                        str[0] = strdup("executa.out");  // colocar o nome do programa executavel
+                        printf("%s\n",linha);
+                        str[0] = strdup("executa");  // colocar o nome do programa executavel
                         execv(str[0],&(str[0]));
                         printf("Não devia imprimir isto\n");
                         exit(-1); //Exec correu mal

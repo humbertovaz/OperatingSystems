@@ -4,7 +4,7 @@
 #include <sys/types.h>
 
 int main(int argc, char *argv[]){
-    printf("%d\n",argc);
+    printf("%d #debug\n",argc);
     if (argc <= 1){
         perror("Erro no nr de argumentos inseridos\n");
         exit(-1);
