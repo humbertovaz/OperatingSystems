@@ -1,4 +1,6 @@
 Este comando lista os ficheiros:
 $ ls -lah
 Este mostra os processos:
-$ ps 
+$ ps
+Este comando faz pipes: 
+$| pwd

@@ -1,3 +1,2 @@
 make leNotebook
-make executa
 
