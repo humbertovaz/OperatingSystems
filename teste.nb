@@ -1,6 +1,7 @@
 Este comando lista os ficheiros:
-$ ls -lah
-Este mostra os processos:
 $ ps
+Este mostra os processos:
+$ netstat -m
 Este comando faz pipes: 
-$| pwd
+$| wc
+
