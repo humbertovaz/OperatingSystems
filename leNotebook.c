@@ -5,6 +5,12 @@
 #include <fcntl.h>
 #include <sys/stat.h>
 #include <sys/types.h>
+#define WRITE_END 1
+#define READ_END 0
+#define STDOUT_FILENO 1
+#define STDIN_FILENO 0
+#define MAX_CHAR_LINE 100
+
 /* 
 Lê ficheiro .nb (formato ficticio);  sempre que encontra um $, tem de executar o comand 
 que se encontra a seguir e imprimir o output do programa da seguinte forma:
@@ -24,6 +30,19 @@ typedef struct command
     char *command;
     char **out;
 } * Command;
+char *lerLinha(int fd)
+{
+	char *buffer = (char*) malloc(MAX_CHAR_LINE);
+	int res, i = -1;
+
+	while( (res=read(fd, buffer + (++i), 1)) > 0 && buffer[i] != '\n' && i < MAX_CHAR_LINE - 1);
+
+	if (res == 0 && i <= 0) return NULL;
+	buffer[i]='\0';
+
+	return buffer;
+}
+
 //Ler linha a linha à procura de $; quando encontrar executa imprimindo o output no formato acima
 //fgets(char * restrict str, int size, FILE * restrict stream);
 
@@ -34,9 +53,10 @@ Estrut initEstrut(Estrut estrut)
     estrut->data = (char **)malloc(sizeof(char*)*100); //Alocar o primeiro apontador de todos para a matriz
     return estrut;
 }
-Command initComs(Command command)
+Command initComs()
 {
-    command= (Command)malloc(sizeof(struct command));
+    Command command;
+    command = (Command)malloc(sizeof(struct command));
     command->command = (char *)malloc(sizeof(char));
     command->out = (char **)malloc(sizeof(char*)*100); //Alocar o primeiro apontador de todos para a matriz
     return command;
@@ -69,7 +89,7 @@ int main(int argc, char const *argv[])
     Estrut estrut;
     estrut = initEstrut(estrut);
     Command *commands = (Command*)malloc(sizeof(struct command));
-    printf("Passei aqui1\n");
+    
     // Cria pipe
     int fd[2];
     int r = pipe(fd);
@@ -78,16 +98,12 @@ int main(int argc, char const *argv[])
 
     while (1)
     {
-        printf("antes fgets\n");
-        readFile = fgets(temp, 100, file); //fgets já coloca o \0 no fim da string
-        printf("depois fagets\n");
+        readFile = fgets(temp, 100, file); //fgets já coloca o \0 no fim da string   
         if (readFile == NULL)              // Chegamos ao final do ficheiro
         {
-            
-           
-            printf("Passei aqui3\n");
+            close(fd[READ_END]);
+            printf("Cheguei ao fim do ficheiro\n");
             //e  Alterar o ficheiro
-
             exit(0);
         }
         else
@@ -110,7 +126,7 @@ int main(int argc, char const *argv[])
                 i++;
                 //printf("TOKENISER: str[%d]=%s\n",i,str[i - 1]);
             }
-
+            
             /// Fim do STRTOK
             str[i] = NULL; // para o execvp saber que chegou ao fim dos argumentos
             if (str[0][0] !=  '$')
@@ -118,22 +134,18 @@ int main(int argc, char const *argv[])
                 // Imprime a linha "não modificada" pelo strtok (temp);
                 printf("%s\n", linha);
                 estrut->data[estrut->nrlinhas++] = strdup(linha);
-                
             }
             else
-            {
-                //Corre o programa "executa" para correr o programa em causa
-                // Fazer apontar o stdout para o pipe    
-                dup2(fd[1], 1); // vou escrever para o pipe
+            {  
                 // Adiciona comando
                 Command addingCommand;
                 addingCommand = initComs(addingCommand);
-                addingCommand->command = strdup(linha);     
+                addingCommand->command = strdup(linha);
+                printf("adding command = %s\n", addingCommand->command);     
                 addCommand(commands, addingCommand, indexCommands++, &sizeCommands);
-                
+                //printf("commands[indexCommands -1] = %s\n",commands[indexCommands -1]->command);
                 
                 x = fork();
-                
                 
                 if (x == 0 && str[0][1] != '|') // É comand mas não tem pipe
                 {
@@ -141,8 +153,9 @@ int main(int argc, char const *argv[])
                     close(fd[0]);
                     printf("%s\n", linha);
                     printf(">>>\n");
+                    dup2(fd[WRITE_END], STDOUT_FILENO);
                     execvp(str[1], &(str[1]));
-                    printf("Não devia imprimir isto\n");
+                    perror("Não devia imprimir isto\n");
                     exit(-1); //Exec correu mal
                 }
                 else if (x == 0 &&  str[0][1] == '|') // É command tem pipe
@@ -180,45 +193,42 @@ int main(int argc, char const *argv[])
                         args[j + k] = strdup(previousCommand->out[k]); // verificar inserção.. Array ?
                     }
 
-                    //printf("HEY%s\n", linha);
                     printf(">>>\n");
+                    dup2(fd[WRITE_END], STDOUT_FILENO);
                     execvp(args[0], args);
-                    printf("Não devia imprimir isto\n");
+                    perror("Não devia imprimir isto\n");
                     exit(-1); //Exec correu mal
                 }
                 else
                 { // P
                     // Redirecionar o descritor do pipe para o descritor de leitura
-                    close(fd[1]);   //Fecha o stdout do pipe
-                    dup2(fd[0], 0); //Vou Ler do pipe
+                    close(fd[WRITE_END]);
                     int status;
-                    wait(0);
                     char buf[100];
                     printf("<<<\n");
-                    // CONTROLO DE ERROS
-                    WEXITSTATUS(status);
+                    
                     if(status == 0) // SUCCESS
                     {
-                        strcpy(linha,""); // limpar conteudo anterior
-                        int line = 0;
-                        while ((readPipe = gets(linha)) != NULL)
+                        // CONTROLO DE ERROS
+                        wait(0);
+                        WEXITSTATUS(status);
+                        int line=0;
+                        readPipe = (char*) malloc(MAX_CHAR_LINE);
+                        while ((readPipe = lerLinha(fd[READ_END]))!=NULL )
                         {
-                            // estrut->data[estrut->nrlinhas] = (char *)malloc(sizeof(char) * estrut->nrcols); //alocar um apontador com #nrcols carateres
-                            // strcpy(estrut->data[estrut->nrlinhas], linha);
-                            // estrut->nrlinhas++;
                             // Ouvir o que cada filho diz e escrever na estrutura Commands
-                            Command currentCommand = commands[indexCommands -1];
-                            currentCommand->out[line++] = strdup(linha); // Modifica o output do comando
-                            commands[indexCommands - 1] = currentCommand; //Coloca-o na estrutura
-                            
-
-
+                            printf("Linha%d\n",line++);
+                            printf("%s\n",readPipe);
                         }
+                        
+                        //printf("debug %s\n",commands[indexCommands -1 ]->command);
                     }
                     else // ERROR
                     {
+                       
                         perror("Error on waiting for child process\n");
                     }
+                    
                     printf("Esperei pelo meu filho! status = %d\n", status);
                     //exit(0);
                     
