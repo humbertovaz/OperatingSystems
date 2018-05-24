@@ -86,7 +86,7 @@ int main(int argc, char const *argv[])
     int sizeCommands = 0;
     int indexCommands = 0;
     // Criacao de estruturas auxiliares
-    Estrut estrut;
+    Estrut estrut = NULL;
     estrut = initEstrut(estrut);
     Command *commands = (Command*)malloc(sizeof(struct command));
     
@@ -117,6 +117,11 @@ int main(int argc, char const *argv[])
             //token[strlen(token)] = '\0';
             i = 0;
 
+            if(linha[0] == '\0')
+            {
+                return 0;
+            }
+
             /* walk through other tokens */
             while (token != NULL)
             {
@@ -138,8 +143,8 @@ int main(int argc, char const *argv[])
             else
             {  
                 // Adiciona comando
-                Command addingCommand;
-                addingCommand = initComs(addingCommand);
+                Command addingCommand = NULL;
+                addingCommand = initComs();
                 addingCommand->command = strdup(linha);
                 printf("adding command = %s\n", addingCommand->command);     
                 addCommand(commands, addingCommand, indexCommands++, &sizeCommands);
@@ -203,7 +208,7 @@ int main(int argc, char const *argv[])
                 { // P
                     // Redirecionar o descritor do pipe para o descritor de leitura
                     close(fd[WRITE_END]);
-                    int status;
+                    int status = 0;
                     char buf[100];
                     printf("<<<\n");
                     
