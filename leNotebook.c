@@ -27,8 +27,9 @@ typedef struct estrutura
 } * Estrut;
 typedef struct command
 {
-    char *command;
+    char **command;
     char **out;
+    int nrcoms;
 } * Command;
 char *lerLinha(int fd)
 {
@@ -57,8 +58,9 @@ Command initComs()
 {
     Command command;
     command = (Command)malloc(sizeof(struct command));
-    command->command = (char *)malloc(sizeof(char));
+    command->command = (char **)malloc(sizeof(char*)*4); // Alocar 4 apontadores para strings
     command->out = (char **)malloc(sizeof(char*)*100); //Alocar o primeiro apontador de todos para a matriz
+    command->nrcoms = 0;
     return command;
 }
 
@@ -79,52 +81,33 @@ int main(int argc, char const *argv[])
     char temp[100];
     char *token = malloc(sizeof(char) * 100);
     FILE *file = fopen("teste.nb", "r");
-    int i, x;
+    int x,k;
     char *linha;
     char *readFile = NULL;
-    char *readPipe = NULL;
+    char *readPipe = (char*) malloc(MAX_CHAR_LINE);
     int sizeCommands = 0;
     int indexCommands = 0;
+    int line;
     // Criacao de estruturas auxiliares
     Estrut estrut;
     estrut = initEstrut(estrut);
     Command *commands = (Command*)malloc(sizeof(struct command));
-    
-    // Cria pipe
-    int fd[2];
-    int r = pipe(fd);
-    if (r < 0)
-        perror("Erro no Pipe\n");
 
-    while (1)
-    {
-        readFile = fgets(temp, 100, file); //fgets já coloca o \0 no fim da string   
-        if (readFile == NULL)              // Chegamos ao final do ficheiro
-        {
-            close(fd[READ_END]);
-            printf("Cheguei ao fim do ficheiro\n");
-            //e  Alterar o ficheiro
-            exit(0);
-        }
-        else
-        {
+    while ((readFile = fgets(temp, 100, file))!= NULL){
             /// STRTOK
             temp[strlen(temp) - 1] = '\0';
             linha = strdup(temp);  // guardar linha para imprimir mais tarde
             char *s = strdup(" "); // separator
             /* get the first token */
             token = strtok(temp, s);
-            //token[strlen(token)] = '\0';
-            i = 0;
-
+            int i = 0;
+            int j = 0;
             /* walk through other tokens */
             while (token != NULL)
             {
                 str[i] = strdup(token);
-                //token[strlen(token)] = '\0';
                 token = strtok(NULL, s);
                 i++;
-                //printf("TOKENISER: str[%d]=%s\n",i,str[i - 1]);
             }
             
             /// Fim do STRTOK
@@ -132,43 +115,57 @@ int main(int argc, char const *argv[])
             if (str[0][0] !=  '$')
             { // Não é comand, imprime
                 // Imprime a linha "não modificada" pelo strtok (temp);
-                printf("%s\n", linha);
                 estrut->data[estrut->nrlinhas++] = strdup(linha);
-            }
-            else
-            {  
+            }else{  
                 // Adiciona comando
                 Command addingCommand;
-                addingCommand = initComs(addingCommand);
-                addingCommand->command = strdup(linha);
-                printf("adding command = %s\n", addingCommand->command);     
+                addingCommand = initComs();
+                // ADICIONAR COMANDO COMPLEXO
+                int j;
+                for(j = 0; str[j]!= NULL; j++){
+                   addingCommand->command[addingCommand->nrcoms++] = strdup(str[j]); 
+                }
+                addingCommand->command[addingCommand->nrcoms] = NULL;
                 addCommand(commands, addingCommand, indexCommands++, &sizeCommands);
-                //printf("commands[indexCommands -1] = %s\n",commands[indexCommands -1]->command);
-                
+                estrut->data[estrut->nrlinhas++] = strdup(linha);
+                printf("addingCommand-> %s",addingCommand->command[0]);
+                printf("commands[%d]->command[%d] = %s\n",0,0,commands[0]->command[0]);
+            
+            }
+    }
+    printf("Cheguei ao fim do ficheiro\n");
+    printf("TESTE %d\n",indexCommands);
+    printf("commands[0]->command=%c\n",commands[0]->command[0][1]);
+    /// É AQUI EM CIMA .. A ESTRUTURA COMMANDS NAO ESTÁ COM O COMANDO
+            for(k = 0; k < indexCommands; k++){
+                int fd[2];
+                int r = pipe(fd);
+                if (r < 0) perror("Erro no Pipe\n");
                 x = fork();
                 
-                if (x == 0 && str[0][1] != '|') // É comand mas não tem pipe
+                if (x == 0 && commands[indexCommands]->command[0][1] != '|') // É comand mas não tem pipe
                 {
                     // Fecha pipe entrada
                     close(fd[0]);
                     printf("%s\n", linha);
                     printf(">>>\n");
+                    printf("TESTE\n");
                     dup2(fd[WRITE_END], STDOUT_FILENO);
-                    execvp(str[1], &(str[1]));
+                    
+                    execvp(commands[indexCommands]->command[1], &(commands[indexCommands]->command[1]));
                     perror("Não devia imprimir isto\n");
                     exit(-1); //Exec correu mal
                 }
-                else if (x == 0 &&  str[0][1] == '|') // É command tem pipe
+                if (x == 0 &&  commands[indexCommands]->command[0][1] == '|') // É command tem pipe
                 {
                     // Fecha pipe entrada
                     close(fd[0]);
-
                     char **args;
                     int argCounter = 0;
                     int j;
-
+                    printf("Teste2\n");
                     // CONCAT CURRENT COMMAND AND ITS ARGS
-                    for(j=0; str[j + 1] != NULL; j++)
+                    for(j=0; commands[indexCommands - 1]->command[j + 1] != NULL; j++)
                     {
                         if(argCounter == j)
                         {
@@ -176,7 +173,7 @@ int main(int argc, char const *argv[])
                             argCounter = (argCounter + 1) * 2;
                         }
 
-                        args[j] = strdup(str[j + 1]);
+                        args[j] = strdup(commands[indexCommands - 1]->command[j + 1]);
                     }
                     
                     // CONCAT OUTPUT FROM PREVIOUS COMMAND
@@ -195,9 +192,11 @@ int main(int argc, char const *argv[])
 
                     printf(">>>\n");
                     dup2(fd[WRITE_END], STDOUT_FILENO);
+                    printf("TESTE\n");
                     execvp(args[0], args);
                     perror("Não devia imprimir isto\n");
                     exit(-1); //Exec correu mal
+                
                 }
                 else
                 { // P
@@ -206,15 +205,13 @@ int main(int argc, char const *argv[])
                     int status;
                     char buf[100];
                     printf("<<<\n");
-                    
+                    wait(0);
+                    WEXITSTATUS(status);
                     if(status == 0) // SUCCESS
                     {
                         // CONTROLO DE ERROS
-                        wait(0);
-                        WEXITSTATUS(status);
-                        int line=0;
-                        readPipe = (char*) malloc(MAX_CHAR_LINE);
-                        while ((readPipe = lerLinha(fd[READ_END]))!=NULL )
+                        line=0;
+                        while ((readPipe = lerLinha(fd[READ_END])) != NULL )
                         {
                             // Ouvir o que cada filho diz e escrever na estrutura Commands
                             printf("Linha%d\n",line++);
@@ -224,8 +221,7 @@ int main(int argc, char const *argv[])
                         //printf("debug %s\n",commands[indexCommands -1 ]->command);
                     }
                     else // ERROR
-                    {
-                       
+                    {  
                         perror("Error on waiting for child process\n");
                     }
                     
@@ -234,7 +230,7 @@ int main(int argc, char const *argv[])
                     
                 }
             }
-        }
-    }
-    return 0;
+return 0;
 }
+        
+
