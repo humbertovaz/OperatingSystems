@@ -64,7 +64,7 @@ Command initComs()
     return command;
 }
 
-void addCommand(Command *commands, Command command, int index, int *size)
+void addCommand(Command *commands, Command *command, int index, int *size)
 {
     if(*size == index)
     {
@@ -72,7 +72,7 @@ void addCommand(Command *commands, Command command, int index, int *size)
         *size = (*size + 1) * 2;
     }
 
-    commands[index] = command;
+    commands[index] = *command;
 }
 
 int main(int argc, char const *argv[])
@@ -126,46 +126,37 @@ int main(int argc, char const *argv[])
                    addingCommand->command[addingCommand->nrcoms++] = strdup(str[j]); 
                 }
                 addingCommand->command[addingCommand->nrcoms] = NULL;
-                addCommand(commands, addingCommand, indexCommands++, &sizeCommands);
+                addCommand(commands, &addingCommand, indexCommands++, &sizeCommands);
                 estrut->data[estrut->nrlinhas++] = strdup(linha);
-                printf("addingCommand-> %s",addingCommand->command[0]);
-                printf("commands[%d]->command[%d] = %s\n",0,0,commands[0]->command[0]);
+                
             
             }
     }
+    printf("Li %d comandos\n",indexCommands);
     printf("Cheguei ao fim do ficheiro\n");
-    printf("TESTE %d\n",indexCommands);
-    printf("commands[0]->command=%c\n",commands[0]->command[0][1]);
-    /// É AQUI EM CIMA .. A ESTRUTURA COMMANDS NAO ESTÁ COM O COMANDO
             for(k = 0; k < indexCommands; k++){
                 int fd[2];
                 int r = pipe(fd);
                 if (r < 0) perror("Erro no Pipe\n");
                 x = fork();
-                
-                if (x == 0 && commands[indexCommands]->command[0][1] != '|') // É comand mas não tem pipe
+                if (x == 0 && commands[k]->command[0][1] != '|') // É comand mas não tem pipe
                 {
                     // Fecha pipe entrada
                     close(fd[0]);
-                    printf("%s\n", linha);
-                    printf(">>>\n");
-                    printf("TESTE\n");
                     dup2(fd[WRITE_END], STDOUT_FILENO);
-                    
-                    execvp(commands[indexCommands]->command[1], &(commands[indexCommands]->command[1]));
+                    execvp(commands[k]->command[1], &(commands[k]->command[1]));
                     perror("Não devia imprimir isto\n");
                     exit(-1); //Exec correu mal
                 }
-                if (x == 0 &&  commands[indexCommands]->command[0][1] == '|') // É command tem pipe
+                if (x == 0 &&  commands[k]->command[0][1] == '|') // É command tem pipe
                 {
                     // Fecha pipe entrada
                     close(fd[0]);
                     char **args;
                     int argCounter = 0;
                     int j;
-                    printf("Teste2\n");
                     // CONCAT CURRENT COMMAND AND ITS ARGS
-                    for(j=0; commands[indexCommands - 1]->command[j + 1] != NULL; j++)
+                    for(j=0; commands[k]->command[j + 1] != NULL; j++)
                     {
                         if(argCounter == j)
                         {
@@ -173,26 +164,24 @@ int main(int argc, char const *argv[])
                             argCounter = (argCounter + 1) * 2;
                         }
 
-                        args[j] = strdup(commands[indexCommands - 1]->command[j + 1]);
+                        args[j] = strdup(commands[k]->command[j + 1]);
                     }
                     
                     // CONCAT OUTPUT FROM PREVIOUS COMMAND
-                    Command previousCommand = commands[indexCommands - 2];
-                    int k;
-                    for(k = 0; previousCommand->out[k] != NULL; k++)
+                    Command previousCommand = commands[k - 1];
+                    int l;
+                    for(l = 0; previousCommand->out[l] != NULL; l++)
                     {
-                       if(argCounter == j + k)
+                       if(argCounter == j + l)
                         {
                             args =(char**)realloc(args, (argCounter+1)*2);
                             argCounter = (argCounter + 1) * 2;
                         } 
 
-                        args[j + k] = strdup(previousCommand->out[k]); // verificar inserção.. Array ?
+                        args[j + l] = strdup(previousCommand->out[l]); // verificar inserção.. Array ?
                     }
 
-                    printf(">>>\n");
                     dup2(fd[WRITE_END], STDOUT_FILENO);
-                    printf("TESTE\n");
                     execvp(args[0], args);
                     perror("Não devia imprimir isto\n");
                     exit(-1); //Exec correu mal
@@ -214,7 +203,6 @@ int main(int argc, char const *argv[])
                         while ((readPipe = lerLinha(fd[READ_END])) != NULL )
                         {
                             // Ouvir o que cada filho diz e escrever na estrutura Commands
-                            printf("Linha%d\n",line++);
                             printf("%s\n",readPipe);
                         }
                         
