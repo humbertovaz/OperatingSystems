@@ -128,12 +128,8 @@ int main(int argc, char const *argv[])
                 addingCommand->command[j] = NULL;
                 addCommand(commands, &addingCommand, indexCommands++, &sizeCommands);
                 estrut->data[estrut->nrlinhas++] = strdup(linha);
-                
-            
             }
     }
-    printf("Li %d comandos\n",indexCommands);
-    printf("Cheguei ao fim do ficheiro\n");
             for(k = 0; k < indexCommands; k++){
                 int fd[2];
                 int r = pipe(fd);
@@ -169,25 +165,20 @@ int main(int argc, char const *argv[])
 
                         args[j] = strdup(commands[k]->command[j + 1]);
                     }
-                    //args[j] = NULL;
-                    //printf("args[j] = %s\n",args[2]);
+                    args[j] = NULL;
+                    printf("args[j] = %s\n",args[0]);
                     commands[k]->command[j - 1][0] = '|';
                     commands[k]->command[j - 1][1] = ' ';
-                    // CONCAT OUTPUT FROM PREVIOUS COMMAND
+                    // Write to a file the output from the previous command 
                     Command previousCommand = commands[k - 1];
                     int l;
-                    
+                    int f = open(previousCommand->command[1],O_RDONLY | O_APPEND | O_CREAT, 0644);
                     for(l = 0; previousCommand->out[l] != NULL; l++)
                     {
-                       /*if(argCounter == j + l)
-                        {
-                            args =(char**)realloc(args, (argCounter+1)*2);
-                            argCounter = (argCounter + 1) * 2;
-                        }*/ 
-                        args[j + l] = strdup(previousCommand->out[l]); // verificar inserção.. Array ?
+                       write(f,previousCommand->out[l],strlen(previousCommand->out[l]));
+                       write(f,"\n",1);
                     }
-                    args[j + l] = NULL;
-                    printf("args[j + l] = %s\n",args[j + l -1]);
+                    dup2(f,STDIN_FILENO);
                     dup2(fd[WRITE_END], STDOUT_FILENO);
                     execvp(args[0], args);
                     perror("Não devia imprimir isto\n");
@@ -213,20 +204,22 @@ int main(int argc, char const *argv[])
                             {
                                 // Ouvir o que cada filho diz e escrever na estrutura Commands
                                 commands[counter]->out[line++] = strdup(readPipe);
-                                
                             }
-                            printf("commands[counter]->command = %s\n",commands[counter]->command[1]);
-                            //printf("debug %s\n",commands[indexCommands -1 ]->command);
                         }
                         else // ERROR
                         {
                             perror("Error on waiting for child process\n");
                         }
-
-                        printf("Esperei pelo meu filho! status = %d\n", status);
-                        //exit(0);
                     
                     }
+                    // Talvez seja necessário fechar descritores
+
+                    // Escrever no ficheiro original
+                    // Teste se está tudo igual
+                    for(int i = 0; i < estrut->nrlinhas; i++){
+                        printf("%s\n",estrut->data[i]);
+                    }
+
 
                     
                     
