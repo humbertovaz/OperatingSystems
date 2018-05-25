@@ -123,9 +123,9 @@ int main(int argc, char const *argv[])
                 // ADICIONAR COMANDO COMPLEXO
                 int j;
                 for(j = 0; str[j]!= NULL; j++){
-                   addingCommand->command[addingCommand->nrcoms++] = strdup(str[j]); 
+                   addingCommand->command[j] = strdup(str[j]); 
                 }
-                addingCommand->command[addingCommand->nrcoms] = NULL;
+                addingCommand->command[j] = NULL;
                 addCommand(commands, &addingCommand, indexCommands++, &sizeCommands);
                 estrut->data[estrut->nrlinhas++] = strdup(linha);
                 
@@ -150,12 +150,15 @@ int main(int argc, char const *argv[])
                 }
                 if (x == 0 &&  commands[k]->command[0][1] == '|') // É command tem pipe
                 {
+                    
                     // Fecha pipe entrada
                     close(fd[0]);
                     char **args;
                     int argCounter = 0;
                     int j;
+                    
                     // CONCAT CURRENT COMMAND AND ITS ARGS
+                    args = (char**) malloc(sizeof(char*)*20); // Alternativa ao realloc
                     for(j=0; commands[k]->command[j + 1] != NULL; j++)
                     {
                         if(argCounter == j)
@@ -166,21 +169,25 @@ int main(int argc, char const *argv[])
 
                         args[j] = strdup(commands[k]->command[j + 1]);
                     }
-                    
+                    //args[j] = NULL;
+                    //printf("args[j] = %s\n",args[2]);
+                    commands[k]->command[j - 1][0] = '|';
+                    commands[k]->command[j - 1][1] = ' ';
                     // CONCAT OUTPUT FROM PREVIOUS COMMAND
                     Command previousCommand = commands[k - 1];
                     int l;
+                    
                     for(l = 0; previousCommand->out[l] != NULL; l++)
                     {
-                       if(argCounter == j + l)
+                       /*if(argCounter == j + l)
                         {
                             args =(char**)realloc(args, (argCounter+1)*2);
                             argCounter = (argCounter + 1) * 2;
-                        } 
-
+                        }*/ 
                         args[j + l] = strdup(previousCommand->out[l]); // verificar inserção.. Array ?
                     }
-
+                    args[j + l] = NULL;
+                    printf("args[j + l] = %s\n",args[j + l -1]);
                     dup2(fd[WRITE_END], STDOUT_FILENO);
                     execvp(args[0], args);
                     perror("Não devia imprimir isto\n");
@@ -194,27 +201,35 @@ int main(int argc, char const *argv[])
                     int status;
                     char buf[100];
                     printf("<<<\n");
-                    wait(0);
-                    WEXITSTATUS(status);
-                    if(status == 0) // SUCCESS
-                    {
-                        // CONTROLO DE ERROS
-                        line=0;
-                        while ((readPipe = lerLinha(fd[READ_END])) != NULL )
+                    int counter = 0;
+                    for(counter = 0; counter < indexCommands; counter++){
+                        wait(0);
+                        WEXITSTATUS(status);
+                        if (status == 0) // SUCCESS
                         {
-                            // Ouvir o que cada filho diz e escrever na estrutura Commands
-                            printf("%s\n",readPipe);
+                            // CONTROLO DE ERROS
+                            line = 0;
+                            while ((readPipe = lerLinha(fd[READ_END])) != NULL)
+                            {
+                                // Ouvir o que cada filho diz e escrever na estrutura Commands
+                                commands[counter]->out[line++] = strdup(readPipe);
+                                
+                            }
+                            printf("commands[counter]->command = %s\n",commands[counter]->command[1]);
+                            //printf("debug %s\n",commands[indexCommands -1 ]->command);
                         }
-                        
-                        //printf("debug %s\n",commands[indexCommands -1 ]->command);
-                    }
-                    else // ERROR
-                    {  
-                        perror("Error on waiting for child process\n");
-                    }
+                        else // ERROR
+                        {
+                            perror("Error on waiting for child process\n");
+                        }
+
+                        printf("Esperei pelo meu filho! status = %d\n", status);
+                        //exit(0);
                     
-                    printf("Esperei pelo meu filho! status = %d\n", status);
-                    //exit(0);
+                    }
+
+                    
+                    
                     
                 }
             }
