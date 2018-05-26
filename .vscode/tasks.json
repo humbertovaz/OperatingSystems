@@ -1,0 +1,13 @@
+{ 
+    "version": "0.1.0", 
+    "isShellCommand": true, 
+    "taskName": "GenericBuild", 
+    "showOutput": "always", 
+    "command": "gcc", 
+    "suppressTaskName": false, 
+    "args": ["-g", "-Wall", "-Wextra", "-pedantic", "leNotebook.c", "-o", "leNotebook"], // command arguments... 
+    "group":{
+        "kind":"build",
+        "isDefault":true
+    }
+}
