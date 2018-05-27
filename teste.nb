@@ -1,3 +1,3 @@
 Olá cenas
-$ ls
+$ ls -la
 $| wc -c

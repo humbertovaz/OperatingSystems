@@ -179,13 +179,13 @@ int main(int argc, char const *argv[])
                 // Write to a file the output from the previous command
                 Command previousCommand = commands[k - 1];
                 int l;
-                int f = open(previousCommand->command[1], O_RDWR | O_APPEND | O_CREAT, 0644);
+                int f = open("temp", O_WRONLY | O_RDONLY | O_TRUNC | O_CREAT, 0644);
+                //FILE * tmpfile = fdopen(f,"w+");
                 for (l = 0; previousCommand->out[l] != NULL; l++)
                 {
-                    write(f, previousCommand->out[l], strlen(previousCommand->out[l]));
-                    write(f, "\n", 1);
+                    write(f,previousCommand->out[l],strlen(previousCommand->out[l]));
+                    write(f,"\n",1);
                 }
-                printf("args ->>> %s",args[2]);
                 dup2(f, STDIN_FILENO);
                 dup2(fd[WRITE_END], STDOUT_FILENO);
                 execvp(args[0], args);
@@ -198,7 +198,6 @@ int main(int argc, char const *argv[])
                 close(fd[WRITE_END]);
                 int status;
                 char buf[100];
-                printf("<<<\n");
                 int counter = 0;
                 for (counter = 0; counter < indexCommands; counter++)
                 {
@@ -220,33 +219,37 @@ int main(int argc, char const *argv[])
                         perror("Error on waiting for child process\n");
                     }
                 }
+                close(fd[READ_END]);
                 // Talvez seja necessário fechar descritores
 
                 
         }
     }
     // Escrever no ficheiro original
-                rewind(file);
-                fclose(file);
-                int f = open("teste1.nb", O_RDWR| O_CREAT, 0644);
-                // Teste se está tudo igual
+                //rewind(file);
+                //fclose(file);
+                FILE* file1 = fopen("teste1.nb","w+");
                 int comandoAtual = 0;
                 int j = 0;
                 for (int i = 0; i < estrut->nrlinhas; i++)
                 {
                     if(estrut->data[i][0]=='$' && comandoAtual < indexCommands){
-                        write(f,estrut->data[i],strlen(estrut->data[i])); // Imprime comando -> TESTE- > subst por estrut
-                        write(f,"\n>>>\n",6);
+                        fprintf(file1,estrut->data[i]); // Imprime comando -> TESTE- > subst por estrut
+                        fprintf(file1,"\n>>>\n");
                         while(commands[comandoAtual]->out[j]!=NULL){
-                            write(f,commands[comandoAtual]->out[j],strlen(commands[comandoAtual]->out[j])); // Imprime out para o ficheiro
-                            write(f,"\n",1);
+                            fprintf(file1,commands[comandoAtual]->out[j]); // Imprime out para o ficheiro
+                            fprintf(file1,"\n");
+                            fflush(file1);
                             j++;
                         }
                         comandoAtual++;
-                        write(f,"<<<\n",5);
+                        fprintf(file1,"<<<\n");
+                        fflush(file1);
                     }else{
-                        write(f,estrut->data[i],strlen(estrut->data[i])); // Imprime linha "não comando"   
-                        write(f,"\n",1);   
+                        fprintf(file1,estrut->data[i],strlen(estrut->data[i]));
+                        fprintf(file1,"\n");
+                        //write(f,estrut->data[i],strlen(estrut->data[i])); // Imprime linha "não comando"   
+                        //write(f,"\n",1);   
                     }
                 }
     return 0;
