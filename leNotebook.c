@@ -91,7 +91,7 @@ int main(int argc, char const *argv[])
     int indexCommands = 0;
     int line;
     // Criacao de estruturas auxiliares
-    Estrut estrut;
+    Estrut estrut = NULL;
     estrut = initEstrut(estrut);
     Command *commands = (Command *)malloc(sizeof(struct command));
 
@@ -126,7 +126,6 @@ int main(int argc, char const *argv[])
             Command addingCommand;
             addingCommand = initComs();
             // ADICIONAR COMANDO COMPLEXO
-            int j;
             for (j = 0; str[j] != NULL; j++)
             {
                 addingCommand->command[j] = strdup(str[j]);
@@ -136,32 +135,57 @@ int main(int argc, char const *argv[])
             estrut->data[estrut->nrlinhas++] = strdup(linha);
         }
     }
-        for (k = 0; k < indexCommands; k++)
+
+    for (k = 0; k < indexCommands; k++)
+    {
+        int fd[2];
+        int r = pipe(fd);
+        if (r < 0)
+            perror("Erro no Pipe\n");
+        x = fork();
+        if (x == 0 && commands[k]->command[0][1] != '|') // É comand mas não tem pipe
         {
-            int fd[2];
-            int r = pipe(fd);
-            if (r < 0)
-                perror("Erro no Pipe\n");
-            x = fork();
-            if (x == 0 && commands[k]->command[0][1] != '|') // É comand mas não tem pipe
+            // Fecha pipe entrada
+            close(fd[0]);
+            dup2(fd[WRITE_END], STDOUT_FILENO);
+            execvp(commands[k]->command[1], &(commands[k]->command[1]));
+            perror("Não devia imprimir isto\n");
+            exit(-1); //Exec correu mal
+        }
+        if (x == 0 && commands[k]->command[0][1] == '|') // É command tem pipe
+        {
+
+            // Fecha pipe entrada
+            close(fd[0]);
+            char **args;
+            int argCounter = 0;
+            int j;
+            int fdPipe[2];
+            pipe(fdPipe);
+
+            int y;
+            y = fork();
+
+            if (y == 0)
             {
-                // Fecha pipe entrada
-                close(fd[0]);
-                dup2(fd[WRITE_END], STDOUT_FILENO);
-                execvp(commands[k]->command[1], &(commands[k]->command[1]));
-                perror("Não devia imprimir isto\n");
-                exit(-1); //Exec correu mal
+                close(fdPipe[0]);
+                dup2(fdPipe[WRITE_END],STDOUT_FILENO);
+                
+                int l;
+                for (l = 0; commands[k - 1]->out[l] != NULL; l++)
+                {
+                    write(fdPipe[WRITE_END], commands[k - 1]->out[l], strlen(commands[k - 1]->out[l]));
+                    write(fdPipe[WRITE_END], "\n", 1);
+                }
+
+                close(fdPipe[WRITE_END]);
+                exit(0);
             }
-            if (x == 0 && commands[k]->command[0][1] == '|') // É command tem pipe
+            else
             {
-
-                // Fecha pipe entrada
-                close(fd[0]);
-                char **args;
-                int argCounter = 0;
-                int j;
-
-                // CONCAT CURRENT COMMAND AND ITS ARGS
+                close(fdPipe[1]);
+                dup2(fdPipe[READ_END], STDIN_FILENO);
+                dup2(fd[WRITE_END],STDOUT_FILENO);
                 args = (char **)malloc(sizeof(char *) * 20); // Alternativa ao realloc
                 for (j = 0; commands[k]->command[j + 1] != NULL; j++)
                 {
@@ -174,80 +198,76 @@ int main(int argc, char const *argv[])
                     args[j] = strdup(commands[k]->command[j + 1]);
                 }
                 args[j] = NULL;
-                commands[k]->command[j - 1][0] = '|';
-                commands[k]->command[j - 1][1] = ' ';
-                // Write to a file the output from the previous command
-                Command previousCommand = commands[k - 1];
-                int l;
-                int f = open(previousCommand->command[1], O_RDWR | O_APPEND | O_CREAT, 0644);
-                for (l = 0; previousCommand->out[l] != NULL; l++)
-                {
-                    write(f, previousCommand->out[l], strlen(previousCommand->out[l]));
-                    write(f, "\n", 1);
-                }
-                printf("args ->>> %s",args[2]);
-                dup2(f, STDIN_FILENO);
-                dup2(fd[WRITE_END], STDOUT_FILENO);
+
                 execvp(args[0], args);
                 perror("Não devia imprimir isto\n");
                 exit(-1); //Exec correu mal
             }
-            else
-            { // P
-                // Redirecionar o descritor do pipe para o descritor de leitura
-                close(fd[WRITE_END]);
-                int status;
-                char buf[100];
-                printf("<<<\n");
-                int counter = 0;
-                for (counter = 0; counter < indexCommands; counter++)
+        }
+        else
+        { // P
+            // Redirecionar o descritor do pipe para o descritor de leitura
+            close(fd[WRITE_END]);
+            int status;
+            char buf[100];
+            printf("<<<\n");
+            int counter = 0;
+            // for (counter = 0; counter < indexCommands; counter++)
+            // {
+                wait(0);
+                WEXITSTATUS(status);
+                if (status == 0) // SUCCESS
                 {
-                    wait(0);
-                    WEXITSTATUS(status);
-                    if (status == 0) // SUCCESS
+                    // CONTROLO DE ERROS
+                    line = 0;
+                    while ((readPipe = lerLinha(fd[READ_END])) != NULL)
                     {
-                        // CONTROLO DE ERROS
-                        line = 0;
-                        while ((readPipe = lerLinha(fd[READ_END])) != NULL)
-                        {
-                            // Ouvir o que cada filho diz e escrever na estrutura Commands
-                            commands[counter]->out[line++] = strdup(readPipe);
-                            
-                        }
+                        // Ouvir o que cada filho diz e escrever na estrutura Commands
+                        commands[k]->out[line++] = strdup(readPipe);
                     }
-                    else // ERROR
+                    int i;
+                    printf("comando %d: %s linhas %d\n", k, commands[k]->command[1], line);
+                    for(i=0; i < line; i++)
                     {
-                        perror("Error on waiting for child process\n");
+                        printf("output %d: %s \n", i, commands[counter]->out[i]);
                     }
                 }
-                // Talvez seja necessário fechar descritores
-
-                
+                else // ERROR
+                {
+                    perror("Error on waiting for child process\n");
+                }
+            // }
+            // Talvez seja necessário fechar descritores
         }
     }
+
     // Escrever no ficheiro original
-                rewind(file);
-                fclose(file);
-                int f = open("teste1.nb", O_RDWR| O_CREAT, 0644);
-                // Teste se está tudo igual
-                int comandoAtual = 0;
-                int j = 0;
-                for (int i = 0; i < estrut->nrlinhas; i++)
-                {
-                    if(estrut->data[i][0]=='$' && comandoAtual < indexCommands){
-                        write(f,estrut->data[i],strlen(estrut->data[i])); // Imprime comando -> TESTE- > subst por estrut
-                        write(f,"\n>>>\n",6);
-                        while(commands[comandoAtual]->out[j]!=NULL){
-                            write(f,commands[comandoAtual]->out[j],strlen(commands[comandoAtual]->out[j])); // Imprime out para o ficheiro
-                            write(f,"\n",1);
-                            j++;
-                        }
-                        comandoAtual++;
-                        write(f,"<<<\n",5);
-                    }else{
-                        write(f,estrut->data[i],strlen(estrut->data[i])); // Imprime linha "não comando"   
-                        write(f,"\n",1);   
-                    }
-                }
+    rewind(file);
+    fclose(file);
+    int f = open("teste1.nb", O_RDWR | O_CREAT, 0666);
+    // Teste se está tudo igual
+    int comandoAtual = 0;
+    int j = 0;
+    for (int i = 0; i < estrut->nrlinhas; i++)
+    {
+        if (estrut->data[i][0] == '$' && comandoAtual < indexCommands)
+        {
+            write(f, estrut->data[i], strlen(estrut->data[i])); // Imprime comando -> TESTE- > subst por estrut
+            write(f, "\n>>>\n", 5);
+            while (commands[comandoAtual]->out[j] != NULL)
+            {
+                write(f, commands[comandoAtual]->out[j], strlen(commands[comandoAtual]->out[j])); // Imprime out para o ficheiro
+                write(f, "\n", 1);
+                j++;
+            }
+            comandoAtual++;
+            write(f, "<<<\n", 5);
+        }
+        else
+        {
+            write(f, estrut->data[i], strlen(estrut->data[i])); // Imprime linha "não comando"
+            write(f, "\n", 1);
+        }
+    }
     return 0;
 }

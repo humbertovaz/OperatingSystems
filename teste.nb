@@ -1,3 +1,4 @@
-Olá cenas
+Ola cenas
 $ ls
-$| wc -c
+$| head -3
+$| head -1
