@@ -1,4 +1,4 @@
 Ola cenas
-$ ls
+$ ls -lah
 $| head -3
 $| head -1

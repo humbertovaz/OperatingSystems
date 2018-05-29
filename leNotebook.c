@@ -66,15 +66,23 @@ Command initComs()
     return command;
 }
 
-void addCommand(Command *commands, Command *command, int index, int *size)
+Command* addCommand(Command *commands, Command command, int index, int *size)
 {
-    if (*size == index)
+    Command* aux = commands;
+    commands = (Command *)malloc(sizeof(Command)*((*size + 1) * 2));
+
+    *size = (*size + 1) * 2;
+
+    int i=0;
+    for(i =0; i< index; i++)
     {
-        commands = (Command *)realloc(commands, (*size + 1) * 2);
-        *size = (*size + 1) * 2;
+        commands[i] = aux[i];
     }
 
-    commands[index] = *command;
+    commands[index] = command;
+    free(aux);
+
+    return commands;
 }
 
 int main(int argc, char const *argv[])
@@ -131,7 +139,8 @@ int main(int argc, char const *argv[])
                 addingCommand->command[j] = strdup(str[j]);
             }
             addingCommand->command[j] = NULL;
-            addCommand(commands, &addingCommand, indexCommands++, &sizeCommands);
+            commands = addCommand(commands, addingCommand, indexCommands++, &sizeCommands);
+
             estrut->data[estrut->nrlinhas++] = strdup(linha);
         }
     }
@@ -169,8 +178,8 @@ int main(int argc, char const *argv[])
             if (y == 0)
             {
                 close(fdPipe[0]);
-                dup2(fdPipe[WRITE_END],STDOUT_FILENO);
-                
+                dup2(fdPipe[WRITE_END], STDOUT_FILENO);
+
                 int l;
                 for (l = 0; commands[k - 1]->out[l] != NULL; l++)
                 {
@@ -185,7 +194,7 @@ int main(int argc, char const *argv[])
             {
                 close(fdPipe[1]);
                 dup2(fdPipe[READ_END], STDIN_FILENO);
-                dup2(fd[WRITE_END],STDOUT_FILENO);
+                dup2(fd[WRITE_END], STDOUT_FILENO);
                 args = (char **)malloc(sizeof(char *) * 20); // Alternativa ao realloc
                 for (j = 0; commands[k]->command[j + 1] != NULL; j++)
                 {
@@ -210,34 +219,26 @@ int main(int argc, char const *argv[])
             close(fd[WRITE_END]);
             int status;
             char buf[100];
-            printf("<<<\n");
             int counter = 0;
-            // for (counter = 0; counter < indexCommands; counter++)
-            // {
-                wait(0);
-                WEXITSTATUS(status);
-                if (status == 0) // SUCCESS
+            wait(0);
+            WEXITSTATUS(status);
+            if (status == 0) // SUCCESS
+            {
+                // CONTROLO DE ERROS
+                line = 0;
+                while ((readPipe = lerLinha(fd[READ_END])) != NULL)
                 {
-                    // CONTROLO DE ERROS
-                    line = 0;
-                    while ((readPipe = lerLinha(fd[READ_END])) != NULL)
-                    {
-                        // Ouvir o que cada filho diz e escrever na estrutura Commands
-                        commands[k]->out[line++] = strdup(readPipe);
-                    }
-                    int i;
-                    printf("comando %d: %s linhas %d\n", k, commands[k]->command[1], line);
-                    for(i=0; i < line; i++)
-                    {
-                        printf("output %d: %s \n", i, commands[counter]->out[i]);
-                    }
+                    // Ouvir o que cada filho diz e escrever na estrutura Commands
+                    commands[k]->out[line++] = strdup(readPipe);
                 }
-                else // ERROR
-                {
-                    perror("Error on waiting for child process\n");
-                }
-            // }
+                int i;
+            }
+            else // ERROR
+            {
+                perror("Error on waiting for child process\n");
+            }
             // Talvez seja necessário fechar descritores
+            close(fd[READ_END]);
         }
     }
 
@@ -247,25 +248,31 @@ int main(int argc, char const *argv[])
     int f = open("teste1.nb", O_RDWR | O_CREAT, 0666);
     // Teste se está tudo igual
     int comandoAtual = 0;
-    int j = 0;
     for (int i = 0; i < estrut->nrlinhas; i++)
     {
-        if (estrut->data[i][0] == '$' && comandoAtual < indexCommands)
+        if (estrut->data[i][0] == '$')
         {
+            int j = 0;
             write(f, estrut->data[i], strlen(estrut->data[i])); // Imprime comando -> TESTE- > subst por estrut
-            write(f, "\n>>>\n", 5);
+            printf("%s\n", estrut->data[i]);
+            write(f, ">>>\n", 4);
+            printf("\n>>>\n");
+
             while (commands[comandoAtual]->out[j] != NULL)
             {
                 write(f, commands[comandoAtual]->out[j], strlen(commands[comandoAtual]->out[j])); // Imprime out para o ficheiro
+                printf("%s\n", commands[comandoAtual]->out[j]);
                 write(f, "\n", 1);
                 j++;
             }
             comandoAtual++;
-            write(f, "<<<\n", 5);
+            write(f, "<<<\n", 4);
+            printf("\n<<<\n");
         }
         else
         {
             write(f, estrut->data[i], strlen(estrut->data[i])); // Imprime linha "não comando"
+            printf("%s\n", estrut->data[i]);
             write(f, "\n", 1);
         }
     }
