@@ -1,11 +1,12 @@
 Ola cenas
-$ ls -lah>>>
-total 344
+$ ls -lah
+>>>
+total 336
 -rwxr-xr-x   1 ricardolopes  staff   9,4K 27 Mai 14:45  leNotebook
 drwxr-xr-x   3 ricardolopes  staff   102B 27 Mai 14:45  leNotebook.dSYM
-drwxr-xr-x  21 ricardolopes  staff   714B 29 Mai 20:45 .
+drwxr-xr-x  21 ricardolopes  staff   714B 29 Mai 20:49 .
 drwxr-xr-x   4 ricardolopes  staff   136B 20 Mai 15:22 ..
-drwxr-xr-x  16 ricardolopes  staff   544B 29 Mai 20:45 .git
+drwxr-xr-x  16 ricardolopes  staff   544B 29 Mai 20:49 .git
 -rw-r--r--   1 ricardolopes  staff    19B  6 Mai 18:16 .gitignore
 drwxr-xr-x   5 ricardolopes  staff   170B 27 Mai 14:45 .vscode
 -rwxr-xr-x   1 ricardolopes  staff   518B 27 Mai 14:45 README.md
@@ -13,21 +14,51 @@ drwxr-xr-x   5 ricardolopes  staff   170B 27 Mai 14:45 .vscode
 drwxr-xr-x   3 ricardolopes  staff   102B 27 Mai 14:45 a.out.dSYM
 -rwxr-xr-x   1 ricardolopes  staff    73K 27 Mai 14:45 enunciado-so-2017-18.pdf
 -rwxr-xr-x   1 ricardolopes  staff   8,4K  9 Mai 21:55 executa
--rwxr-xr-x   1 ricardolopes  staff    14K 29 Mai 20:45 leNotebook
--rwxr-xr-x   1 ricardolopes  staff   8,2K 29 Mai 20:45 leNotebook.c
+-rwxr-xr-x   1 ricardolopes  staff    14K 29 Mai 20:49 leNotebook
+-rwxr-xr-x   1 ricardolopes  staff   8,0K 29 Mai 20:49 leNotebook.c
 drwxr-xr-x   3 ricardolopes  staff   102B 20 Mai 23:54 leNotebook.dSYM
 -rw-r--r--   1 ricardolopes  staff   152B 27 Mai 22:03 ls
 -rwxr-xr-x@  1 ricardolopes  staff    17B 25 Mai 13:36 run.sh
--rwxr-xr-x   1 ricardolopes  staff    42B 29 Mai 00:27 teste.nb
+-rwxr-xr-x   1 ricardolopes  staff    57B 29 Mai 20:48 teste.nb
 -rw-r--r--   1 ricardolopes  staff   203B 27 Mai 20:20 teste1
--rw-r--r--   1 ricardolopes  staff   1,6K 29 Mai 20:43 teste1.nb
+-rw-r--r--   1 ricardolopes  staff   1,6K 29 Mai 20:45 teste1.nb
 -rw-r--r--   1 ricardolopes  staff   468B 27 Mai 23:03 testeBin
+
 <<<
-$| head -3>>>
-total 344
+$| head -10
+>>>
+total 336
 -rwxr-xr-x   1 ricardolopes  staff   9,4K 27 Mai 14:45  leNotebook
 drwxr-xr-x   3 ricardolopes  staff   102B 27 Mai 14:45  leNotebook.dSYM
+drwxr-xr-x  21 ricardolopes  staff   714B 29 Mai 20:49 .
+drwxr-xr-x   4 ricardolopes  staff   136B 20 Mai 15:22 ..
+drwxr-xr-x  16 ricardolopes  staff   544B 29 Mai 20:49 .git
+-rw-r--r--   1 ricardolopes  staff    19B  6 Mai 18:16 .gitignore
+drwxr-xr-x   5 ricardolopes  staff   170B 27 Mai 14:45 .vscode
+-rwxr-xr-x   1 ricardolopes  staff   518B 27 Mai 14:45 README.md
+-rwxr-xr-x   1 ricardolopes  staff   9,0K 27 Mai 14:45 a.out
+
 <<<
-$| head -1>>>
-total 344
+$| head -5
+>>>
+total 336
+-rwxr-xr-x   1 ricardolopes  staff   9,4K 27 Mai 14:45  leNotebook
+drwxr-xr-x   3 ricardolopes  staff   102B 27 Mai 14:45  leNotebook.dSYM
+drwxr-xr-x  21 ricardolopes  staff   714B 29 Mai 20:49 .
+drwxr-xr-x   4 ricardolopes  staff   136B 20 Mai 15:22 ..
+
+<<<
+$| sort
+>>>
+-rwxr-xr-x   1 ricardolopes  staff   9,4K 27 Mai 14:45  leNotebook
+drwxr-xr-x   3 ricardolopes  staff   102B 27 Mai 14:45  leNotebook.dSYM
+drwxr-xr-x   4 ricardolopes  staff   136B 20 Mai 15:22 ..
+drwxr-xr-x  21 ricardolopes  staff   714B 29 Mai 20:49 .
+total 336
+
+<<<
+$| wc
+>>>
+       5      38     264
+
 <<<

@@ -254,20 +254,16 @@ int main(int argc, char const *argv[])
         {
             int j = 0;
             write(f, estrut->data[i], strlen(estrut->data[i])); // Imprime comando -> TESTE- > subst por estrut
-            printf("%s\n", estrut->data[i]);
-            write(f, ">>>\n", 4);
-            printf("\n>>>\n");
+            write(f, "\n>>>\n", 5);
 
             while (commands[comandoAtual]->out[j] != NULL)
             {
                 write(f, commands[comandoAtual]->out[j], strlen(commands[comandoAtual]->out[j])); // Imprime out para o ficheiro
-                printf("%s\n", commands[comandoAtual]->out[j]);
                 write(f, "\n", 1);
                 j++;
             }
             comandoAtual++;
-            write(f, "<<<\n", 4);
-            printf("\n<<<\n");
+            write(f, "\n<<<\n", 5);
         }
         else
         {

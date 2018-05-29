@@ -1,4 +1,6 @@
 Ola cenas
 $ ls -lah
-$| head -3
-$| head -1
+$| head -10
+$| head -5
+$| sort
+$| wc
