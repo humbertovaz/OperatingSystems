@@ -1,0 +1,84 @@
+Ola cenas
+$ ls -lah
+>>>
+total 256
+drwxr-xr-x@ 12 humbertovaz  staff   408B May 31 12:08 .
+drwx------@ 46 humbertovaz  staff   1.5K May 31 11:46 ..
+-rw-r--r--@  1 humbertovaz  staff   6.0K May 30 23:44 .DS_Store
+-rwxr-xr-x@  1 humbertovaz  staff    19B May 29 12:51 .gitignore
+drwxr-xr-x@  6 humbertovaz  staff   204B May 31 11:48 .vscode
+-rwxr-xr-x@  1 humbertovaz  staff   518B May 29 12:51 README.md
+-rwxr-xr-x   1 humbertovaz  staff    13K May 31 12:08 a.out
+-rwxr-xr-x@  1 humbertovaz  staff    73K May 29 12:51 enunciado-so-2017-18.pdf
+-rwxr-xr-x@  1 humbertovaz  staff   8.6K May 31 12:08 leNotebook.c
+drwxr-xr-x@  3 humbertovaz  staff   102B May 29 12:51 leNotebook.dSYM
+-rwxr-xr-x@  1 humbertovaz  staff    61B May 31 12:08 teste.nb
+-rw-r--r--   1 humbertovaz  staff   2.7K May 31 12:08 teste1.nb
+
+<<<
+$| head -10
+>>>
+total 256
+drwxr-xr-x@ 12 humbertovaz  staff   408B May 31 12:08 .
+drwx------@ 46 humbertovaz  staff   1.5K May 31 11:46 ..
+-rw-r--r--@  1 humbertovaz  staff   6.0K May 30 23:44 .DS_Store
+-rwxr-xr-x@  1 humbertovaz  staff    19B May 29 12:51 .gitignore
+drwxr-xr-x@  6 humbertovaz  staff   204B May 31 11:48 .vscode
+-rwxr-xr-x@  1 humbertovaz  staff   518B May 29 12:51 README.md
+-rwxr-xr-x   1 humbertovaz  staff    13K May 31 12:08 a.out
+-rwxr-xr-x@  1 humbertovaz  staff    73K May 29 12:51 enunciado-so-2017-18.pdf
+-rwxr-xr-x@  1 humbertovaz  staff   8.6K May 31 12:08 leNotebook.c
+
+<<<
+$| head -5
+>>>
+total 256
+drwxr-xr-x@ 12 humbertovaz  staff   408B May 31 12:08 .
+drwx------@ 46 humbertovaz  staff   1.5K May 31 11:46 ..
+-rw-r--r--@  1 humbertovaz  staff   6.0K May 30 23:44 .DS_Store
+-rwxr-xr-x@  1 humbertovaz  staff    19B May 29 12:51 .gitignore
+
+<<<
+$| sort
+>>>
+-rw-r--r--@  1 humbertovaz  staff   6.0K May 30 23:44 .DS_Store
+-rwxr-xr-x@  1 humbertovaz  staff    19B May 29 12:51 .gitignore
+drwx------@ 46 humbertovaz  staff   1.5K May 31 11:46 ..
+drwxr-xr-x@ 12 humbertovaz  staff   408B May 31 12:08 .
+total 256
+
+<<<
+$| wc
+>>>
+       5      38     252
+
+<<<
+$7|
+>>>
+-rw-r--r--@  1 humbertovaz  staff   6.0K May 30 23:44 .DS_Store
+-rwxr-xr-x@  1 humbertovaz  staff    19B May 29 12:51 .gitignore
+drwx------@ 46 humbertovaz  staff   1.5K May 31 11:46 ..
+drwxr-xr-x@ 12 humbertovaz  staff   408B May 31 12:08 .
+total 256
+
+<<<
+ ..
+drwxr-xr-x@  3 humbertovaz  staff   102B May 29 12:51  leNotebook.dSYM
+drwxr-xr-x@ 19 humbertovaz  staff   646B May 31 11:55 .
+total 312
+
+<<<
+$| wc
+>>>
+       5      38     260
+
+<<<
+$2|
+>>>
+-rwxr-xr-x@  1 humbertovaz  staff   9.4K May 29 12:51  leNotebook
+drwx------@ 46 humbertovaz  staff   1.5K May 31 11:46 ..
+drwxr-xr-x@  3 humbertovaz  staff   102B May 29 12:51  leNotebook.dSYM
+drwxr-xr-x@ 19 humbertovaz  staff   646B May 31 11:55 .
+total 312
+
+<<<
