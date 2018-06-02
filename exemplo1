@@ -1,0 +1,6 @@
+Este comando lista ficheiros:
+$ ls
+Este mostra processos:
+$ ps
+Este ordena a lista de ficheiros
+$2| sort

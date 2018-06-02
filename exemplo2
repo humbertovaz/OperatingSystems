@@ -1,0 +1,8 @@
+Este comando lista os ficheiros e mostra informação
+$ ls -la
+Este conta as palavras
+$| wc -c
+Este mostra os processos
+$ ps
+Este ordena o resultado do 3o último comando
+$3| sort

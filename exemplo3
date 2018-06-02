@@ -1,0 +1,6 @@
+Este comando mostra os processos:
+$ ps
+Este mostra a pasta atual:
+$ pwd
+Este ordena os processos:
+$2| sort
