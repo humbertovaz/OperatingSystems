@@ -8,7 +8,7 @@
             "type": "cppdbg",
             "request": "launch",
             "program": "${workspaceRoot}/leNotebook",
-            "args": [],
+            "args": ["teste.nb"],
             "stopAtEntry": false,
             "cwd": "${workspaceRoot}",
             "environment": [],

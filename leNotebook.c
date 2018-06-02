@@ -12,14 +12,6 @@
 #define STDIN_FILENO 0
 #define MAX_CHAR_LINE 100
 
-/* 
-Lê ficheiro .nb (formato ficticio);  sempre que encontra um $, tem de executar o comand 
-que se encontra a seguir e imprimir o output do programa da seguinte forma:
->>>
-output
-<<<
-
-*/
 typedef struct estrutura
 {
     int nrlinhas;
@@ -47,22 +39,19 @@ char *lerLinha(int fd)
     return buffer;
 }
 
-//Ler linha a linha à procura de $; quando encontrar executa imprimindo o output no formato acima
-//fgets(char * restrict str, int size, FILE * restrict stream);
-
 Estrut initEstrut(Estrut estrut)
 {
     estrut = (Estrut)malloc(sizeof(struct estrutura));
     estrut->nrlinhas = 0;
-    estrut->data = (char **)malloc(sizeof(char *) * 100); //Alocar o primeiro apontador de todos para a matriz
+    estrut->data = (char **)malloc(sizeof(char *) * 100);
     return estrut;
 }
 Command initComs()
 {
     Command command;
     command = (Command)malloc(sizeof(struct command));
-    command->command = (char **)malloc(sizeof(char *) * 4); // Alocar 4 apontadores para strings
-    command->out = (char **)malloc(sizeof(char *) * 100);   //Alocar o primeiro apontador de todos para a matriz
+    command->command = (char **)malloc(sizeof(char *) * 4);
+    command->out = (char **)malloc(sizeof(char *) * 100); 
     command->nrcoms = 0;
     return command;
 }
@@ -91,7 +80,20 @@ int main(int argc, char const *argv[])
     char **str = malloc(sizeof(char *) * 20); // Alocar 20 apontadores
     char temp[100];
     char *token = malloc(sizeof(char) * 100);
-    FILE *file = fopen("teste.nb", "r");
+    char *fileName;
+    if(argc == 2)
+    {
+        fileName = strdup(argv[1]);
+    }
+    else
+    {
+        char errorMsg[260] = "file name missing, please use ";
+        strcat(errorMsg, argv[0]);
+        strcat(errorMsg, " fileName");
+        perror(errorMsg);
+        exit(1);
+    }
+    FILE *file = fopen(fileName, "r");
     int x, k;
     char *linha;
     char *readFile = NULL;
@@ -100,22 +102,19 @@ int main(int argc, char const *argv[])
     int indexCommands = 0;
     int line;
     int ignoreLines = 0;
-    // Criacao de estruturas auxiliares
     Estrut estrut = NULL;
     estrut = initEstrut(estrut);
     Command *commands = (Command *)malloc(sizeof(struct command));
 
     while ((readFile = fgets(temp, 100, file)) != NULL)
     {
-        /// STRTOK
         temp[strlen(temp) - 1] = '\0';
-        linha = strdup(temp);  // guardar linha para imprimir mais tarde
-        char *s = strdup(" "); // separator
-        /* get the first token */
+        linha = strdup(temp);
+        char *s = strdup(" ");
         token = strtok(temp, s);
         int i = 0;
         int j = 0;
-        /* walk through other tokens */
+
         while (token != NULL)
         {
             str[i] = strdup(token);
@@ -123,15 +122,14 @@ int main(int argc, char const *argv[])
             i++;
         }
 
+        str[i] = NULL; // para o execvp saber que chegou ao fim dos argumentos
         if(strcmp(linha, ">>>")==0)
         {
             ignoreLines = 1;
         }
-        /// Fim do STRTOK
-        str[i] = NULL; // para o execvp saber que chegou ao fim dos argumentos
+
         if (str[0] != NULL && str[0][0] != '$')
-        { // Não é comand, imprime
-            // Imprime a linha "não modificada" pelo strtok (temp);
+        { 
             if(ignoreLines == 0)
             {
                 estrut->data[estrut->nrlinhas++] = strdup(linha);
@@ -139,10 +137,9 @@ int main(int argc, char const *argv[])
         }
         else if(str[0] != NULL)
         {
-            // Adiciona comando
             Command addingCommand;
             addingCommand = initComs();
-            // ADICIONAR COMANDO COMPLEXO
+
             for (j = 0; str[j] != NULL; j++)
             {
                 addingCommand->command[j] = strdup(str[j]);
@@ -164,19 +161,18 @@ int main(int argc, char const *argv[])
         int fd[2];
         int r = pipe(fd);
         if (r < 0)
-            perror("Erro no Pipe\n");
+            perror("Pipe failed\n");
         x = fork();
-        if (x == 0 && commands[k]->command[0][1] != '|' && (isdigit(commands[k]->command[0][1]) == 0)) // É comand mas não tem pipe
+        if (x == 0 && commands[k]->command[0][1] != '|' && (isdigit(commands[k]->command[0][1]) == 0)) 
         {
-            // Fecha pipe entrada
             close(fd[0]);
             dup2(fd[WRITE_END], STDOUT_FILENO);
             execvp(commands[k]->command[1], &(commands[k]->command[1]));
-            perror("Não devia imprimir isto\n");
-            exit(-1); //Exec correu mal
+            perror("Exec failed\n");
+            exit(-1); 
         }
 
-        if (x == 0 && (commands[k]->command[0][1] == '|' || isdigit(commands[k]->command[0][1]))) // É command tem pipe
+        if (x == 0 && (commands[k]->command[0][1] == '|' || isdigit(commands[k]->command[0][1])))
         {
             int previousCommand = 1;
             int hasDigit = 0;
@@ -193,7 +189,7 @@ int main(int argc, char const *argv[])
                 index++;
             }
             
-            args = (char **)malloc(sizeof(char *) * 20); // Alternativa ao realloc
+            args = (char **)malloc(sizeof(char *) * 20);
             for (j = 0; commands[k]->command[j + 1] != NULL; j++)
             {
                 if (argCounter == j)
@@ -207,7 +203,6 @@ int main(int argc, char const *argv[])
 
             args[j] = NULL;
 
-            // Fecha pipe entrada
             close(fd[0]);
             int fdPipe[2];
             pipe(fdPipe);
@@ -221,7 +216,6 @@ int main(int argc, char const *argv[])
                 close(fdPipe[0]);
                 dup2(fdPipe[WRITE_END], STDOUT_FILENO);
 
-                // Funcionalidade avançada $1 -> Comando 1
                 if (hasDigit == 1)
                 {
                     previousCommand = atoi(tempNumber);
@@ -255,59 +249,49 @@ int main(int argc, char const *argv[])
                 dup2(fd[WRITE_END], STDOUT_FILENO);
                
                 execvp(args[0], args);
-                perror("Não devia imprimir isto\n");
-                exit(-1); //Exec correu mal
+                perror("Exec failed\n");
+                exit(-1);
             }
         }
         else
-        { // P
-            // Redirecionar o descritor do pipe para o descritor de leitura
+        {
             close(fd[WRITE_END]);
             int status;
-            char buf[100];
-            int counter = 0;
             wait(0);
             WEXITSTATUS(status);
-            if (status == 0) // SUCCESS
+            if (status == 0) 
             {
-                // CONTROLO DE ERROS
                 line = 0;
                 while ((readPipe = lerLinha(fd[READ_END])) != NULL)
                 {
-                    // Ouvir o que cada filho diz e escrever na estrutura Commands
                     commands[k]->out[line++] = strdup(readPipe);
                 }
             }
-            else // ERROR
+            else
             {
                 perror("Error on waiting for child process\n");
                 close(fd[READ_END]);
                 exit(1);
             }
-            // Talvez seja necessário fechar descritores
             close(fd[READ_END]);
         }
     }
 
-    // Escrever no ficheiro original
-    //rewind(file);
     fclose(file);
-    sleep(5);
-    int f = open("X.nb", O_RDWR | O_CREAT, 0666);
-    //int f = open("teste1.nb", O_RDWR | O_CREAT, 0666);
-    // Teste se está tudo igual
+    int f = open(fileName, O_TRUNC | O_WRONLY, 0666);
+
     int comandoAtual = 0;
     for (int i = 0; i < estrut->nrlinhas; i++)
     {
         if (estrut->data[i][0] == '$')
         {
             int j = 0;
-            write(f, estrut->data[i], strlen(estrut->data[i])); // Imprime comando -> TESTE- > subst por estrut
+            write(f, estrut->data[i], strlen(estrut->data[i])); 
             write(f, "\n>>>\n", 5);
 
             while (commands[comandoAtual]->out[j] != NULL)
             {
-                write(f, commands[comandoAtual]->out[j], strlen(commands[comandoAtual]->out[j])); // Imprime out para o ficheiro
+                write(f, commands[comandoAtual]->out[j], strlen(commands[comandoAtual]->out[j]));
                 write(f, "\n", 1);
                 j++;
             }
@@ -316,14 +300,12 @@ int main(int argc, char const *argv[])
         }
         else
         {
-            write(f, estrut->data[i], strlen(estrut->data[i])); // Imprime linha "não comando"
+            write(f, estrut->data[i], strlen(estrut->data[i]));
             write(f, "\n", 1);
         }
     }
 
     close(f);
-    system("rm -f teste.nb"); 
-    system("mv X.nb teste.nb");
 
     return 0;
 }
