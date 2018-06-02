@@ -96,7 +96,7 @@ int main(int argc, char const *argv[])
     char **str = malloc(sizeof(char *) * 20); // Alocar 20 apontadores
     char temp[100];
     char *token = malloc(sizeof(char) * 100);
-    FILE *file = fopen("teste.nb", "r");
+    FILE *file = fopen("teste.nb", "r+");
     int x, k;
     char *linha;
     char *readFile = NULL;
@@ -104,6 +104,7 @@ int main(int argc, char const *argv[])
     int sizeCommands = 0;
     int indexCommands = 0;
     int line;
+    int ignoreLines = 0; // >>> and <<<
     // Criacao de estruturas auxiliares
     Estrut estrut = NULL;
     estrut = initEstrut(estrut);
@@ -127,12 +128,19 @@ int main(int argc, char const *argv[])
             i++;
         }
 
+        if(strcmp(linha, ">>>")==0)
+        {
+            ignoreLines = 1;
+        }
         /// Fim do STRTOK
         str[i] = NULL; // para o execvp saber que chegou ao fim dos argumentos
         if (str[0][0] != '$')
         { // Não é comand, imprime
             // Imprime a linha "não modificada" pelo strtok (temp);
-            estrut->data[estrut->nrlinhas++] = strdup(linha);
+            if(ignoreLines == 0)
+            {
+                estrut->data[estrut->nrlinhas++] = strdup(linha);
+            }
         }
         else
         {
@@ -180,7 +188,6 @@ int main(int argc, char const *argv[])
 
             int y;
             y = fork();
-
             if (y == 0)
             {
                 close(fdPipe[0]);
@@ -220,8 +227,7 @@ int main(int argc, char const *argv[])
             }
         }
         else
-        { // P
-            // Redirecionar o descritor do pipe para o descritor de leitura
+        { // Pai
             close(fd[WRITE_END]);
             int status;
             char buf[100];
@@ -249,10 +255,8 @@ int main(int argc, char const *argv[])
     }
 
     // Escrever no ficheiro original
-    rewind(file);
-    fclose(file);
-    int f = open("teste1.nb", O_RDWR | O_CREAT, 0666);
-    // Teste se está tudo igual
+    //fclose(file);
+    int f = open("X.nb", O_RDWR | O_CREAT, 0666);
     int comandoAtual = 0;
     int numCom;
     for (int i = 0; i < estrut->nrlinhas; i++)
@@ -283,14 +287,22 @@ int main(int argc, char const *argv[])
                 j++;
             }
             comandoAtual++;
-            write(f, "\n<<<\n", 5);
+            write(f, "<<<\n", 4);
         }
         else
         {
             write(f, estrut->data[i], strlen(estrut->data[i])); // Imprime linha "não comando"
-            //printf("%s\n", estrut->data[i]);
             write(f, "\n", 1);
+                     
         }
+        
+        
     }
+    rewind(file);
+    fclose(file);
+    close(f);
+    system("rm teste.nb"); 
+    system("mv X.nb teste.nb");
+    
     return 0;
 }
