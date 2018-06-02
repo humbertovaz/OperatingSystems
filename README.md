@@ -1,17 +1,15 @@
 # Operating Systems
 Work assignment for the Operating Systems class 
 
-executa.c -> código que irá correr todos os comandos da shell
-leNotebook -> Lê ficheiro de texto .nb (exemplo do enunciado) e processa o input, isto é, descarta texto "corrido" e envia comandos individualmente para o ficheiro executa.out
+
+notebook -> Lê ficheiro de texto .nb (exemplo do enunciado) e processa o input, isto é, imprime texto "corrido" e envia o output dos comandos presentes individualmente para o ficheiro passado na shell.
+ex: ./notebook file.nb
 
 
-Para compilar:
 
-make leNotebook
-gcc executa.c -O executa.out
+## Para compilar:
 
+make notebook
 
-### Processamento de Notebooks
-- [x] executa.c ("shell" para comandos (fork + exec))
-- [x] leNotebook sem "pipes"
-- [ ] leNotebook com "pipes
+## Para testar exemplos 
+./run.sh 
