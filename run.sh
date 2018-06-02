@@ -1,7 +1,7 @@
 make notebook
-./notebook exemplo1
-./notebook exemplo2
-./notebook exemplo3
-./notebook exemplo4
+./notebook exemplo1.nb
+./notebook exemplo2.nb
+./notebook exemplo3.nb
+./notebook exemplo4.nb
 
 
