@@ -129,7 +129,7 @@ int main(int argc, char const *argv[])
         }
         /// Fim do STRTOK
         str[i] = NULL; // para o execvp saber que chegou ao fim dos argumentos
-        if (str[0][0] != '$')
+        if (str[0] != NULL && str[0][0] != '$')
         { // Não é comand, imprime
             // Imprime a linha "não modificada" pelo strtok (temp);
             if(ignoreLines == 0)
@@ -137,7 +137,7 @@ int main(int argc, char const *argv[])
                 estrut->data[estrut->nrlinhas++] = strdup(linha);
             }
         }
-        else
+        else if(str[0] != NULL)
         {
             // Adiciona comando
             Command addingCommand;
@@ -153,7 +153,7 @@ int main(int argc, char const *argv[])
             estrut->data[estrut->nrlinhas++] = strdup(linha);
         }
 
-        if(strcmp(linha, ">>>")==0)
+        if(strcmp(linha, "<<<")==0)
         {
             ignoreLines = 0;
         }
@@ -222,9 +222,6 @@ int main(int argc, char const *argv[])
                 dup2(fdPipe[WRITE_END], STDOUT_FILENO);
 
                 // Funcionalidade avançada $1 -> Comando 1
-
-                printf("command index %d\n", commandIndex);
-
                 if (hasDigit == 1)
                 {
                     previousCommand = atoi(tempNumber);
@@ -246,7 +243,6 @@ int main(int argc, char const *argv[])
                 {
                     write(fdPipe[WRITE_END], commands[commandIndex]->out[l], strlen(commands[commandIndex]->out[l]));
                     write(fdPipe[WRITE_END], "\n", 1);
-                    printf("str %s", commands[commandIndex]->out[l]);
                 }
                 
                 close(fdPipe[WRITE_END]);
@@ -294,9 +290,11 @@ int main(int argc, char const *argv[])
     }
 
     // Escrever no ficheiro original
-    rewind(file);
+    //rewind(file);
     fclose(file);
-    int f = open("teste1.nb", O_RDWR | O_CREAT, 0666);
+    sleep(5);
+    int f = open("X.nb", O_RDWR | O_CREAT, 0666);
+    //int f = open("teste1.nb", O_RDWR | O_CREAT, 0666);
     // Teste se está tudo igual
     int comandoAtual = 0;
     for (int i = 0; i < estrut->nrlinhas; i++)
@@ -314,7 +312,7 @@ int main(int argc, char const *argv[])
                 j++;
             }
             comandoAtual++;
-            write(f, "\n<<<\n", 5);
+            write(f, "<<<\n", 4);
         }
         else
         {
@@ -322,5 +320,10 @@ int main(int argc, char const *argv[])
             write(f, "\n", 1);
         }
     }
+
+    close(f);
+    system("rm -f teste.nb"); 
+    system("mv X.nb teste.nb");
+
     return 0;
 }

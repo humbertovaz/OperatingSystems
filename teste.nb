@@ -1,7 +1,57 @@
 Ola cenas
 $ ls -lah
+>>>
+total 344
+-rwxr-xr-x   1 ricardolopes  staff   9,4K 27 Mai 14:45  leNotebook
+drwxr-xr-x   3 ricardolopes  staff   102B 27 Mai 14:45  leNotebook.dSYM
+drwxr-xr-x  21 ricardolopes  staff   714B  2 Jun 17:53 .
+drwxr-xr-x   4 ricardolopes  staff   136B 20 Mai 15:22 ..
+drwxr-xr-x  16 ricardolopes  staff   544B  2 Jun 17:53 .git
+-rw-r--r--   1 ricardolopes  staff    19B  6 Mai 18:16 .gitignore
+drwxr-xr-x   5 ricardolopes  staff   170B 27 Mai 14:45 .vscode
+-rwxr-xr-x   1 ricardolopes  staff   518B 27 Mai 14:45 README.md
+-rwxr-xr-x   1 ricardolopes  staff   9,0K 27 Mai 14:45 a.out
+drwxr-xr-x   3 ricardolopes  staff   102B 27 Mai 14:45 a.out.dSYM
+-rwxr-xr-x   1 ricardolopes  staff    73K 27 Mai 14:45 enunciado-so-2017-18.pdf
+-rwxr-xr-x   1 ricardolopes  staff   8,4K  9 Mai 21:55 executa
+-rwxr-xr-x   1 ricardolopes  staff    14K  2 Jun 17:51 leNotebook
+-rwxr-xr-x   1 ricardolopes  staff   9,5K  2 Jun 17:51 leNotebook.c
+drwxr-xr-x   3 ricardolopes  staff   102B 20 Mai 23:54 leNotebook.dSYM
+-rw-r--r--   1 ricardolopes  staff   152B 27 Mai 22:03 ls
+-rwxr-xr-x@  1 ricardolopes  staff    17B 25 Mai 13:36 run.sh
+-rw-r--r--   1 ricardolopes  staff   2,5K  2 Jun 17:53 teste.nb
+-rw-r--r--   1 ricardolopes  staff   203B 27 Mai 20:20 teste1
+-rw-r--r--   1 ricardolopes  staff   2,9K  2 Jun 16:59 teste1.nb
+-rw-r--r--   1 ricardolopes  staff   468B 27 Mai 23:03 testeBin
+<<<
 $| head -10
+>>>
+total 344
+-rwxr-xr-x   1 ricardolopes  staff   9,4K 27 Mai 14:45  leNotebook
+drwxr-xr-x   3 ricardolopes  staff   102B 27 Mai 14:45  leNotebook.dSYM
+drwxr-xr-x  21 ricardolopes  staff   714B  2 Jun 17:53 .
+drwxr-xr-x   4 ricardolopes  staff   136B 20 Mai 15:22 ..
+drwxr-xr-x  16 ricardolopes  staff   544B  2 Jun 17:53 .git
+-rw-r--r--   1 ricardolopes  staff    19B  6 Mai 18:16 .gitignore
+drwxr-xr-x   5 ricardolopes  staff   170B 27 Mai 14:45 .vscode
+-rwxr-xr-x   1 ricardolopes  staff   518B 27 Mai 14:45 README.md
+-rwxr-xr-x   1 ricardolopes  staff   9,0K 27 Mai 14:45 a.out
+<<<
 $| head -5
-$| sort
-$ echo 123
+>>>
+total 344
+-rwxr-xr-x   1 ricardolopes  staff   9,4K 27 Mai 14:45  leNotebook
+drwxr-xr-x   3 ricardolopes  staff   102B 27 Mai 14:45  leNotebook.dSYM
+drwxr-xr-x  21 ricardolopes  staff   714B  2 Jun 17:53 .
+drwxr-xr-x   4 ricardolopes  staff   136B 20 Mai 15:22 ..
+<<<
+$| head -3
+>>>
+total 344
+-rwxr-xr-x   1 ricardolopes  staff   9,4K 27 Mai 14:45  leNotebook
+drwxr-xr-x   3 ricardolopes  staff   102B 27 Mai 14:45  leNotebook.dSYM
+<<<
 $| wc
+>>>
+       3      20     149
+<<<
