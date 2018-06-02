@@ -1,6 +1,6 @@
-Este comando lista os ficheiros
+Este comando lista ficheiros
 $ ls
 Agora podemos ordenar estes ficheiros:
 $| sort
-E escolher o segundo:
-$| head -2
+E escolher o primeiro:
+$| head -1
