@@ -98,6 +98,7 @@ int main(int argc, char const *argv[])
     int sizeCommands = 0;
     int indexCommands = 0;
     int line;
+    int ignoreLines = 0;
     // Criacao de estruturas auxiliares
     Estrut estrut = NULL;
     estrut = initEstrut(estrut);
@@ -121,12 +122,19 @@ int main(int argc, char const *argv[])
             i++;
         }
 
+        if(strcmp(linha, ">>>")==0)
+        {
+            ignoreLines = 1;
+        }
         /// Fim do STRTOK
         str[i] = NULL; // para o execvp saber que chegou ao fim dos argumentos
         if (str[0][0] != '$')
         { // Não é comand, imprime
             // Imprime a linha "não modificada" pelo strtok (temp);
-            estrut->data[estrut->nrlinhas++] = strdup(linha);
+            if(ignoreLines == 0)
+            {
+                estrut->data[estrut->nrlinhas++] = strdup(linha);
+            }
         }
         else
         {
@@ -143,10 +151,36 @@ int main(int argc, char const *argv[])
 
             estrut->data[estrut->nrlinhas++] = strdup(linha);
         }
+
+        if(strcmp(linha, ">>>")==0)
+        {
+            ignoreLines = 0;
+        }
     }
 
     for (k = 0; k < indexCommands; k++)
     {
+        int previousCommand = -1;
+
+        char tempNumber[5];
+        int index = 1;
+        // while(isdigit(isdigit(commands[k]->command[0][index])))
+        // {
+
+        // }
+        // // Funcionalidade avançada $1 -> Comando 1
+        // if (isdigit(commands[k]->command[0][index]))
+        // {
+        //     previousCommand = atoi(&tmp);
+        //     if (numCom > 0 && numCom < indexCommands)
+        //         comandoAtual = comandoAtual - numCom;
+        //     else
+        //     {
+        //         perror("Comando inválido");
+        //         exit(-1);
+        //     }
+        // }
+
         int fd[2];
         int r = pipe(fd);
         if (r < 0)
@@ -236,6 +270,8 @@ int main(int argc, char const *argv[])
             else // ERROR
             {
                 perror("Error on waiting for child process\n");
+                close(fd[READ_END]);
+                exit(1);
             }
             // Talvez seja necessário fechar descritores
             close(fd[READ_END]);
@@ -268,7 +304,6 @@ int main(int argc, char const *argv[])
         else
         {
             write(f, estrut->data[i], strlen(estrut->data[i])); // Imprime linha "não comando"
-            printf("%s\n", estrut->data[i]);
             write(f, "\n", 1);
         }
     }
