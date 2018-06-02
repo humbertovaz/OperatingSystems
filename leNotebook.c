@@ -108,7 +108,11 @@ int main(int argc, char const *argv[])
 
     while ((readFile = fgets(temp, 100, file)) != NULL)
     {
-        temp[strlen(temp) - 1] = '\0';
+        if(temp[strlen(temp) - 1] == '\n')
+        {
+            temp[strlen(temp) - 1] = '\0';
+        }
+        
         linha = strdup(temp);
         char *s = strdup(" ");
         token = strtok(temp, s);
@@ -257,7 +261,7 @@ int main(int argc, char const *argv[])
         {
             close(fd[WRITE_END]);
             int status;
-            wait(0);
+            wait(&status);
             WEXITSTATUS(status);
             if (status == 0) 
             {
