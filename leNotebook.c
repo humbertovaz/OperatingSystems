@@ -5,6 +5,7 @@
 #include <fcntl.h>
 #include <sys/stat.h>
 #include <sys/types.h>
+#include <ctype.h>
 #define WRITE_END 1
 #define READ_END 0
 #define STDOUT_FILENO 1
@@ -160,33 +161,12 @@ int main(int argc, char const *argv[])
 
     for (k = 0; k < indexCommands; k++)
     {
-        int previousCommand = -1;
-
-        char tempNumber[5];
-        int index = 1;
-        // while(isdigit(isdigit(commands[k]->command[0][index])))
-        // {
-
-        // }
-        // // Funcionalidade avançada $1 -> Comando 1
-        // if (isdigit(commands[k]->command[0][index]))
-        // {
-        //     previousCommand = atoi(&tmp);
-        //     if (numCom > 0 && numCom < indexCommands)
-        //         comandoAtual = comandoAtual - numCom;
-        //     else
-        //     {
-        //         perror("Comando inválido");
-        //         exit(-1);
-        //     }
-        // }
-
         int fd[2];
         int r = pipe(fd);
         if (r < 0)
             perror("Erro no Pipe\n");
         x = fork();
-        if (x == 0 && commands[k]->command[0][1] != '|') // É comand mas não tem pipe
+        if (x == 0 && commands[k]->command[0][1] != '|' && (isdigit(commands[k]->command[0][1]) == 0)) // É comand mas não tem pipe
         {
             // Fecha pipe entrada
             close(fd[0]);
@@ -195,14 +175,40 @@ int main(int argc, char const *argv[])
             perror("Não devia imprimir isto\n");
             exit(-1); //Exec correu mal
         }
-        if (x == 0 && commands[k]->command[0][1] == '|') // É command tem pipe
-        {
 
-            // Fecha pipe entrada
-            close(fd[0]);
+        if (x == 0 && (commands[k]->command[0][1] == '|' || isdigit(commands[k]->command[0][1]))) // É command tem pipe
+        {
+            int previousCommand = 1;
+            int hasDigit = 0;
+            char tempNumber[5];
+            int index = 1;
             char **args;
             int argCounter = 0;
             int j;
+
+            while (isdigit(commands[k]->command[0][index]) != 0)
+            {
+                tempNumber[index - 1] = commands[k]->command[0][index];
+                hasDigit = 1;
+                index++;
+            }
+            
+            args = (char **)malloc(sizeof(char *) * 20); // Alternativa ao realloc
+            for (j = 0; commands[k]->command[j + 1] != NULL; j++)
+            {
+                if (argCounter == j)
+                {
+                    args = (char **)realloc(args, (argCounter + 1) * 2);
+                    argCounter = (argCounter + 1) * 2;
+                }
+
+                args[j] = strdup(commands[k]->command[j + 1]);
+            }
+
+            args[j] = NULL;
+
+            // Fecha pipe entrada
+            close(fd[0]);
             int fdPipe[2];
             pipe(fdPipe);
 
@@ -211,16 +217,38 @@ int main(int argc, char const *argv[])
 
             if (y == 0)
             {
+                int commandIndex = k;
                 close(fdPipe[0]);
                 dup2(fdPipe[WRITE_END], STDOUT_FILENO);
 
-                int l;
-                for (l = 0; commands[k - 1]->out[l] != NULL; l++)
+                // Funcionalidade avançada $1 -> Comando 1
+
+                printf("command index %d\n", commandIndex);
+
+                if (hasDigit == 1)
                 {
-                    write(fdPipe[WRITE_END], commands[k - 1]->out[l], strlen(commands[k - 1]->out[l]));
-                    write(fdPipe[WRITE_END], "\n", 1);
+                    previousCommand = atoi(tempNumber);
+                    if (previousCommand > 0 && previousCommand <= indexCommands)
+                        commandIndex = commandIndex - previousCommand;
+                    else
+                    {
+                        perror("Comando inválido");
+                        exit(-1);
+                    }
+                }
+                else
+                {
+                    commandIndex = commandIndex - previousCommand;
                 }
 
+                int l;
+                for (l = 0; commands[commandIndex]->out[l] != NULL; l++)
+                {
+                    write(fdPipe[WRITE_END], commands[commandIndex]->out[l], strlen(commands[commandIndex]->out[l]));
+                    write(fdPipe[WRITE_END], "\n", 1);
+                    printf("str %s", commands[commandIndex]->out[l]);
+                }
+                
                 close(fdPipe[WRITE_END]);
                 exit(0);
             }
@@ -229,19 +257,7 @@ int main(int argc, char const *argv[])
                 close(fdPipe[1]);
                 dup2(fdPipe[READ_END], STDIN_FILENO);
                 dup2(fd[WRITE_END], STDOUT_FILENO);
-                args = (char **)malloc(sizeof(char *) * 20); // Alternativa ao realloc
-                for (j = 0; commands[k]->command[j + 1] != NULL; j++)
-                {
-                    if (argCounter == j)
-                    {
-                        args = (char **)realloc(args, (argCounter + 1) * 2);
-                        argCounter = (argCounter + 1) * 2;
-                    }
-
-                    args[j] = strdup(commands[k]->command[j + 1]);
-                }
-                args[j] = NULL;
-
+               
                 execvp(args[0], args);
                 perror("Não devia imprimir isto\n");
                 exit(-1); //Exec correu mal
@@ -265,7 +281,6 @@ int main(int argc, char const *argv[])
                     // Ouvir o que cada filho diz e escrever na estrutura Commands
                     commands[k]->out[line++] = strdup(readPipe);
                 }
-                int i;
             }
             else // ERROR
             {

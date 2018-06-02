@@ -3,4 +3,5 @@ $ ls -lah
 $| head -10
 $| head -5
 $| sort
+$ echo 123
 $| wc
